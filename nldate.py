@@ -155,12 +155,12 @@ def _normalize_text(text: str) -> str:
 
 
 def _parse_weekday_reference(text: str, today: date) -> date | None:
-    match = re.fullmatch(r"(next|last|this)\s+([a-z]+)", text)
+    match = re.fullmatch(r"(next|last|this)\s+([a-z.]+)", text)
     if not match:
         return None
 
     direction, weekday_text = match.groups()
-    weekday = _WEEKDAYS.get(weekday_text)
+    weekday = _lookup_weekday(weekday_text)
     if weekday is None:
         return None
 
@@ -215,8 +215,8 @@ def _parse_absolute_date(text: str, today: date) -> date | None:
 
 def _parse_month_name_date(text: str, default_year: int) -> date | None:
     patterns = (
-        r"([a-z]+) (\d{1,2})(?:, (\d{4}))?",
-        r"(\d{1,2}) ([a-z]+)(?: (\d{4}))?",
+        r"([a-z.]+) (\d{1,2})(?:, (\d{4}))?",
+        r"(\d{1,2}) ([a-z.]+)(?: (\d{4}))?",
     )
 
     for pattern in patterns:
@@ -227,9 +227,9 @@ def _parse_month_name_date(text: str, default_year: int) -> date | None:
         first, second, year_text = match.groups()
         if first.isdigit():
             day = int(first)
-            month = _MONTH_NAMES.get(second)
+            month = _lookup_month(second)
         else:
-            month = _MONTH_NAMES.get(first)
+            month = _lookup_month(first)
             day = int(second)
 
         if month is None:
@@ -323,6 +323,14 @@ def _parse_number_tokens(tokens: list[str]) -> int:
     if not seen_number:
         raise ValueError(f"invalid quantity: {joined!r}")
     return total + current
+
+
+def _lookup_month(token: str) -> int | None:
+    return _MONTH_NAMES.get(token.rstrip("."))
+
+
+def _lookup_weekday(token: str) -> int | None:
+    return _WEEKDAYS.get(token.rstrip("."))
 
 
 def _add_duration(base: date, duration: dict[str, int], sign: int = 1) -> date:
