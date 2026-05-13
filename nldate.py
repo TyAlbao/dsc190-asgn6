@@ -195,8 +195,9 @@ def _parse_simple_relative(text: str, today: date) -> date | None:
 def _parse_absolute_date(text: str, today: date) -> date | None:
     cleaned = re.sub(r"(\d)(st|nd|rd|th)\b", r"\1", text)
 
-    if re.fullmatch(r"\d{4}-\d{1,2}-\d{1,2}", cleaned):
-        return date.fromisoformat(cleaned)
+    if re.fullmatch(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}", cleaned):
+        year_text, month_text, day_text = re.split(r"[-/]", cleaned)
+        return date(int(year_text), int(month_text), int(day_text))
 
     if match := re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", cleaned):
         month, day, year = (int(part) for part in match.groups())
